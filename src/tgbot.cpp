@@ -9,7 +9,7 @@ using namespace TgBot;
 using namespace std;
 using namespace StringTools;
 
-int runcommands(char *command)
+int runcommands(const char *command)
 {
 	return system(command);
 }
@@ -20,6 +20,8 @@ void runBot(Bot &build)
  BotCommand::Ptr cmdarray (new BotCommand);
  cmdarray->command="startbuild";
  cmdarray->description="start the build";
+ cmdarray->command="command";
+ cmdarray->description="run whatever you want in bash terminal";
  commands.push_back(cmdarray);
  build.getApi().setMyCommands(commands); 
  vector<BotCommand::Ptr> vectCmd;
@@ -37,8 +39,28 @@ void runBot(Bot &build)
  		build.getApi().sendMessage(message->chat->id,"You aren't a sudo user");
  	}
     });
+build.getEvents().onCommand("command",[&build](Message::Ptr message){
+	if(message->chat->id==SUDO_USER)
+	{
+		while(true)
+		{
+			build.getApi().sendMessage(message->chat->id,"Send the command to execute");
+
+			if(startsWith(message->text,"/stop"))
+				break;
+
+			if(runcommands(message->text.c_str())!=0)
+				build.getApi().sendMessage(message->chat->id,"command executed with errors");
+			else
+				build.getApi().sendMessage(message->chat->id,"Command executed successfully");
+		}
+	}
+	else{
+		build.getApi().sendMessage(message->chat->id,"You aren't a sudo user");
+	}
+});
  build.getEvents().onAnyMessage([&build](Message::Ptr message) {
-        if (startsWith(message->text, "/startbuild")) {
+        if (startsWith(message->text, "/startbuild") || startsWith(message->text,"/command")) {
             return;
         }
     });
