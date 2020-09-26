@@ -9,6 +9,8 @@ using namespace TgBot;
 using namespace std;
 using namespace StringTools;
 
+static bool running = false;
+
 int runcommands(const char *command)
 {
 	return system(command);
@@ -27,7 +29,7 @@ void runBot(Bot &build)
  vector<BotCommand::Ptr> vectCmd;
  vectCmd = build.getApi().getMyCommands();
  build.getEvents().onCommand("startbuild",[&build](Message::Ptr message) {
- 	if(message->chat->id==SUDO_USER)
+ 	if(message->from->id==SUDO_USER)
  	{
  		if((runcommands(COMMAND))!=0)
  			build.getApi().sendMessage(message->chat->id,"command executed with errors");
@@ -40,20 +42,10 @@ void runBot(Bot &build)
  	}
     });
 build.getEvents().onCommand("command",[&build](Message::Ptr message){
-	if(message->chat->id==SUDO_USER)
+	if(message->from->id==SUDO_USER)
 	{
-		while(true)
-		{
-			build.getApi().sendMessage(message->chat->id,"Send the command to execute");
-
-			if(startsWith(message->text,"/stop"))
-				break;
-
-			if(runcommands(message->text.c_str())!=0)
-				build.getApi().sendMessage(message->chat->id,"command executed with errors");
-			else
-				build.getApi().sendMessage(message->chat->id,"Command executed successfully");
-		}
+		build.getApi().sendMessage(message->chat->id,"Enter the command");
+		running = true;
 	}
 	else{
 		build.getApi().sendMessage(message->chat->id,"You aren't a sudo user");
@@ -62,6 +54,18 @@ build.getEvents().onCommand("command",[&build](Message::Ptr message){
  build.getEvents().onAnyMessage([&build](Message::Ptr message) {
         if (startsWith(message->text, "/startbuild") || startsWith(message->text,"/command")) {
             return;
+        }
+        else{
+        	if(message->from->id==SUDO_USER)
+        	{
+        		if(running) {
+        			if(runcommands(message->text.c_str())!=0)
+						build.getApi().sendMessage(message->chat->id,"command executed with errors");
+					else
+						build.getApi().sendMessage(message->chat->id,"Command executed successfully");
+					running=false;
+        		}
+        	}
         }
     });
 }
