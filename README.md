@@ -13,4 +13,5 @@ from a Telegram Bot.
 ```
 cmake .
 make -j $(nproc --all)
+./tgbot
 ```
