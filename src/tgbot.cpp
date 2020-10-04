@@ -10,6 +10,23 @@ using namespace std;
 using namespace StringTools;
 
 static bool running = false;
+InlineKeyboardMarkup::Ptr keyboard;
+
+void escape_html(string& html) {
+    string tmp;
+    tmp.reserve(html.size());
+    for(size_t pos = 0; pos != html.size(); ++pos) {
+        switch(html[pos]) {
+            case '&':  tmp.append("&amp;");       break;
+            case '\"': tmp.append("&quot;");      break;
+            case '\'': tmp.append("&apos;");      break;
+            case '<':  tmp.append("&lt;");        break;
+            case '>':  tmp.append("&gt;");        break;
+            default:   tmp.append(&html[pos], 1); break;
+        }
+    }
+    html.swap(tmp);
+}
 
 string runcommands(const char *command)
 {
@@ -84,7 +101,8 @@ build.getEvents().onCommand("command",[&build](Message::Ptr message){
 						build.getApi().sendMessage(message->chat->id,"command executed with errors");
 					else{
 						build.getApi().sendMessage(message->chat->id,"Command executed successfully");
-						build.getApi().sendMessage(message->chat->id,"Output \n \n"+out);
+						escape_html(out);
+						build.getApi().sendMessage(message->chat->id,"<b>Output:-</b> \n \n"+out,true, 0, keyboard, "HTML");
 					}
 					running=false;
         		}
