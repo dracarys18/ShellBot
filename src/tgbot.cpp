@@ -11,9 +11,29 @@ using namespace StringTools;
 
 static bool running = false;
 
-int runcommands(const char *command)
+string runcommands(const char *command)
 {
-	return system(command);
+	FILE *cp;
+	string out_string;
+	array<char,PATH_MAX> rst;
+
+	cp = popen(command,"r");
+	
+	if(cp==NULL)
+		return string();
+	else
+	{
+		while(fgets(rst.data(), PATH_MAX, cp) != NULL)
+			out_string+= rst.data();
+	}
+	auto ret = pclose(cp);
+
+	if (ret == -1){
+		free(cp);
+	}
+
+
+	return out_string;
 }
 
 void runBot(Bot &build)
@@ -31,7 +51,7 @@ void runBot(Bot &build)
  build.getEvents().onCommand("startbuild",[&build](Message::Ptr message) {
  	if(message->from->id==SUDO_USER)
  	{
- 		if((runcommands(COMMAND))!=0)
+ 		if(system(COMMAND)!=0)
  			build.getApi().sendMessage(message->chat->id,"command executed with errors");
  		else
  			build.getApi().sendMessage(message->chat->id,"Command executed successfully");
@@ -59,10 +79,13 @@ build.getEvents().onCommand("command",[&build](Message::Ptr message){
         	if(message->from->id==SUDO_USER)
         	{
         		if(running) {
-        			if(runcommands(message->text.c_str())!=0)
+        			string out = runcommands(message->text.c_str());
+        			if(out.empty())
 						build.getApi().sendMessage(message->chat->id,"command executed with errors");
-					else
+					else{
 						build.getApi().sendMessage(message->chat->id,"Command executed successfully");
+						build.getApi().sendMessage(message->chat->id,"Output \n \n"+out);
+					}
 					running=false;
         		}
         	}
