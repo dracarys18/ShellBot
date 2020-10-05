@@ -116,6 +116,10 @@ int main()
  Bot bot(TG_API_KEY);
  runBot(bot);
  TgLongPoll longpoll(bot);
+ signal(SIGINT, [](int sig) {
+        printf("SIGINT got\n");
+        exit(0);
+ });      
  try{
  while(true)
  {
