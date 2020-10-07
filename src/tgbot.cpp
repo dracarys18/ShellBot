@@ -102,7 +102,7 @@ build.getEvents().onCommand("command",[&build](Message::Ptr message){
 					else{
 						build.getApi().sendMessage(message->chat->id,"Command executed successfully");
 						escape_html(out);
-						build.getApi().sendMessage(message->chat->id,"<b>Output:-</b> \n \n"+out,true, 0, keyboard, "HTML");
+						build.getApi().sendMessage(message->chat->id,"<b>Output:-</b> \n \n<code>"+out+"</code>",true, 0, keyboard, "HTML");
 					}
 					running=false;
         		}
